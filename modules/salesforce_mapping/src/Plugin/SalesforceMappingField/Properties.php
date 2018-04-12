@@ -95,6 +95,19 @@ class Properties extends SalesforceMappingFieldPluginBase {
     if (empty($config['drupal_field_value'])) {
       $form_state->setError($form['config']['drupal_field_value'], t('Drupal field is required.'));
     }
+    // @TODO: Should we validate the $config['drupal_field_value']['setting'] property?
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
+    parent::submitConfigurationForm($form, $form_state);
+
+    // Resetting the `drupal_field_value` to just the `setting` portion, which should be a string.
+    $config_value = $form_state->getValue('config');
+    $config_value['drupal_field_value'] = $config_value['drupal_field_value']['setting'];
+    $form_state->setValue('config', $config_value);
   }
 
   /**
