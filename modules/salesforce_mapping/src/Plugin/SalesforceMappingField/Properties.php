@@ -10,6 +10,7 @@ use Drupal\salesforce_mapping\Entity\SalesforceMappingInterface;
 use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\TypedData\TypedDataTrait;
+use Drupal\typed_data\DataFetcherTrait;
 use Drupal\typed_data\Form\SubformState;
 use Drupal\typed_data\Util\StateTrait;
 use Drupal\typed_data\Widget\FormWidgetManagerTrait;
@@ -28,6 +29,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
   use FormWidgetManagerTrait;
   use StateTrait;
   use TypedDataTrait;
+  use DataFetcherTrait;
 
   /**
    * Implementation of PluginFormInterface::buildConfigurationForm.
@@ -124,13 +126,42 @@ class Properties extends SalesforceMappingFieldPluginBase {
     if ($field_definition['type'] == 'multipicklist') {
       $values = [];
       foreach ($entity->get($this->config('drupal_field_value')) as $value) {
-        $values[] = $value->value;
+        $values[] = $this->getStringValue($entity, $value);
       }
       return implode(';', $values);
     }
     else {
-      return $entity->get($this->config('drupal_field_value'))->value;
+      return $this->getStringValue($entity, $this->config('drupal_field_value'));
     }
+  }
+
+  /**
+   * Helper Method to check for and retrieve field data.
+   *
+   * If it is just a regular field/property of the entity, the data is
+   * retrieved with ->value(). If this is a property referenced using the
+   * typed_data module's extension, use typed_data module's DataFetcher class
+   * to retrieve the value.
+   *
+   * @param \Drupal\Core\Entity\EntityInterface $entity
+   *   The entity to search the Typed Data for.
+   * @param string $drupal_field_value
+   *   The Typed Data property to get
+   *
+   * @return string
+   *   The String representation of the Typed Data property value.
+   *
+   * @throws \Drupal\Core\TypedData\Exception\MissingDataException
+   * @throws \Drupal\typed_data\Exception\InvalidArgumentException
+   */
+  protected function getStringValue(EntityInterface $entity, $drupal_field_value) {
+    $sub_paths = explode('.', $drupal_field_value);
+    if (\count($sub_paths) > 1) {
+      $string_data = $this->getDataFetcher()->fetchDataBySubPaths($entity->getTypedData(), $sub_paths)->getString();
+      return $string_data;
+    }
+    $original = $entity->get($drupal_field_value)->value;
+    return $original;
   }
 
   /**
