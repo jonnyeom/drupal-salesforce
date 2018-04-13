@@ -15,10 +15,8 @@ use Drupal\field\Entity\FieldConfig;
 use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\TypedData\TypedDataTrait;
 use Drupal\typed_data\DataFetcherTrait;
-use Drupal\typed_data\Form\SubformState;
 use Drupal\typed_data\Util\StateTrait;
 use Drupal\typed_data\Widget\FormWidgetManagerTrait;
-
 
 /**
  * Adapter for entity properties and fields.
@@ -150,7 +148,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The entity to search the Typed Data for.
    * @param string $drupal_field_value
-   *   The Typed Data property to get
+   *   The Typed Data property to get.
    *
    * @return string
    *   The String representation of the Typed Data property value.
@@ -293,7 +291,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
       return [];
     }
     return [
-      'config' => array($field_config->getConfigDependencyName()),
+      'config' => [$field_config->getConfigDependencyName()]
     ];
   }
 
