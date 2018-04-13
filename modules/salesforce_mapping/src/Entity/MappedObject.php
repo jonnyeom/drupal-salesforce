@@ -22,6 +22,7 @@ use Drupal\salesforce_mapping\Event\SalesforcePushParamsEvent;
 use Drupal\salesforce_mapping\MappingConstants;
 use Drupal\salesforce_mapping\PushParams;
 use Drupal\salesforce_mapping\Plugin\Field\ComputedItemList;
+use Drupal\typed_data\DataFetcherTrait;
 
 /**
  * Defines a Salesforce Mapped Object entity class.
@@ -72,6 +73,7 @@ use Drupal\salesforce_mapping\Plugin\Field\ComputedItemList;
  */
 class MappedObject extends RevisionableContentEntityBase implements MappedObjectInterface {
 
+  use DataFetcherTrait;
   use EntityChangedTrait;
 
   /**
@@ -561,7 +563,22 @@ class MappedObject extends RevisionableContentEntityBase implements MappedObject
       $drupal_field = $field->get('drupal_field_value');
 
       try {
-        $drupal_entity->set($drupal_field, $value);
+        if (!$value) {
+          continue;
+        }
+
+        $target = $drupal_entity;
+        $sub_paths = explode('.', $drupal_field);
+        $sub_paths = array_reverse($sub_paths);
+
+        while (\count($sub_paths) > 1) {
+          $sub_path = array_pop($sub_paths);
+          $target = $target->$sub_path;
+        }
+        $sub_path = array_pop($sub_paths);
+        $target->$sub_path = $value;
+
+        // @Todo: Should we validate the $value based on the $data_definition of the field?
       }
       catch (\Exception $e) {
         $message = 'Exception during pull for @sfobj.@sffield @sfid to @dobj.@dprop @did with value @v';
