@@ -5,6 +5,7 @@ namespace Drupal\salesforce_mapping\Controller;
 use Drupal\Component\Utility\Unicode;
 use Drupal\Core\Controller\ControllerBase;
 use Drupal\Core\Entity\EntityFieldManagerInterface;
+use Drupal\Core\Field\EntityReferenceFieldItemListInterface;
 use Drupal\typed_data\DataFetcherTrait;
 use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
@@ -62,6 +63,12 @@ class AutocompleteController extends ControllerBase {
   public function autocomplete(Request $request, $entity_type_id, $bundle) {
     $string = Unicode::strtolower($request->query->get('q'));
     $field_definitions = $this->fieldManager->getFieldDefinitions($entity_type_id, $bundle);
+    // Filter out EntityReference Items since they are handled elsewhere. @Todo: Not sure why this filter does not work.
+    foreach ($field_definitions as $index => $field_definition) {
+      if ($field_definition instanceof EntityReferenceFieldItemListInterface) {
+        unset($field_definitions[$index]);
+      }
+    }
     $results = $this
         ->getDataFetcher()
         ->autocompletePropertyPath($field_definitions, $string);
