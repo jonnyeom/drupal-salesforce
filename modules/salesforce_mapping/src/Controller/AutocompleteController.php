@@ -11,7 +11,6 @@ use Symfony\Component\DependencyInjection\ContainerInterface;
 use Symfony\Component\HttpFoundation\JsonResponse;
 use Symfony\Component\HttpFoundation\Request;
 
-
 /**
  * Class AutocompleteController.
  */
@@ -32,7 +31,7 @@ class AutocompleteController extends ControllerBase {
    * @param \Drupal\Core\Entity\EntityFieldManagerInterface $field_manager
    *   Entity field manager.
    */
-  public function __construct( EntityFieldManagerInterface $field_manager) {
+  public function __construct(EntityFieldManagerInterface $field_manager) {
     $this->fieldManager = $field_manager;
   }
 
@@ -45,13 +44,11 @@ class AutocompleteController extends ControllerBase {
     );
   }
 
-
   /**
    * Autocomplete.
    *
    * @param \Symfony\Component\HttpFoundation\Request $request
    *   The request object providing the autocomplete query parameter.
-   *
    * @param string $entity_type_id
    *   The entity type filter options by.
    * @param string $bundle
@@ -63,15 +60,16 @@ class AutocompleteController extends ControllerBase {
   public function autocomplete(Request $request, $entity_type_id, $bundle) {
     $string = Unicode::strtolower($request->query->get('q'));
     $field_definitions = $this->fieldManager->getFieldDefinitions($entity_type_id, $bundle);
-    // Filter out EntityReference Items since they are handled elsewhere. @Todo: Not sure why this filter does not work.
+    // Filter out EntityReference Items since they are handled elsewhere.
+    // @Todo: Not sure why this filter does not work.
     foreach ($field_definitions as $index => $field_definition) {
       if ($field_definition instanceof EntityReferenceFieldItemListInterface) {
         unset($field_definitions[$index]);
       }
     }
     $results = $this
-        ->getDataFetcher()
-        ->autocompletePropertyPath($field_definitions, $string);
+      ->getDataFetcher()
+      ->autocompletePropertyPath($field_definitions, $string);
 
     return new JsonResponse($results);
   }
