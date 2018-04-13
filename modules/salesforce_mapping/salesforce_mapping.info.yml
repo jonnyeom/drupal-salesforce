@@ -7,4 +7,4 @@ configure: entity.salesforce_mapping.list
 dependencies:
   - salesforce
   - dynamic_entity_reference (2.x)
-  - typed_data
+  - typed_data (1.x-dev)
