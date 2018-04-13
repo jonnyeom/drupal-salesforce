@@ -4,7 +4,11 @@ namespace Drupal\salesforce_mapping\Plugin\SalesforceMappingField;
 
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
+use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
+use Drupal\Core\TypedData\ListDataDefinitionInterface;
 use Drupal\Core\Url;
+use Drupal\salesforce\SFID;
+use Drupal\salesforce\SObject;
 use Drupal\salesforce_mapping\SalesforceMappingFieldPluginBase;
 use Drupal\salesforce_mapping\Entity\SalesforceMappingInterface;
 use Drupal\field\Entity\FieldConfig;
@@ -162,6 +166,98 @@ class Properties extends SalesforceMappingFieldPluginBase {
     }
     $original = $entity->get($drupal_field_value)->value;
     return $original;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  public function pullValue(SObject $sf_object, EntityInterface $entity, SalesforceMappingInterface $mapping) {
+    // @TODO to provide for better extensibility, this would be better implemented as some kind of constraint or plugin system. That would also open new possibilities for injecting business logic into he mapping layer.
+
+    if (!$this->pull() || empty($this->config('salesforce_field'))) {
+      throw new SalesforceException('No data to pull. Salesforce field mapping is not defined.');
+    }
+
+    $value = $sf_object->field($this->config('salesforce_field'));
+
+    // objectDescribe can throw an exception, but that's outside the scope of
+    // being handled here. Allow it to percolate.
+    $describe = $this
+      ->salesforceClient
+      ->objectDescribe($mapping->getSalesforceObjectType());
+
+    $field_definition = $describe->getField($this->config('salesforce_field'));
+
+    $data_fetcher_field_definition = $this->getDataFetcher()->fetchDefinitionByPropertyPath($entity->getTypedData()->getDataDefinition(), $this->config('drupal_field_value'));
+    if ($data_fetcher_field_definition instanceof ListDataDefinitionInterface) {
+      $data_fetcher_field_definition = $data_fetcher_field_definition->getItemDefinition();
+    }
+    $class = \get_class($data_fetcher_field_definition);
+    if ($data_fetcher_field_definition instanceof ComplexDataDefinitionInterface) {
+      $field_main_property = $drupal_field_type = $data_fetcher_field_definition
+        ->getPropertyDefinition($data_fetcher_field_definition->getMainPropertyName());
+    }
+    else {
+      $field_main_property = $drupal_field_type = $data_fetcher_field_definition;
+    }
+    $drupal_field_type = $field_main_property ? $field_main_property->getDataType() : NULL;
+    $drupal_field_settings = $data_fetcher_field_definition->getSettings();
+
+    switch (strtolower($field_definition['type'])) {
+      case 'boolean':
+        if (is_string($value) && strtolower($value) === 'false') {
+          $value = FALSE;
+        }
+        $value = (bool) $value;
+        break;
+
+      case 'datetime':
+        if ($drupal_field_type === 'datetime_iso8601') {
+          $value = substr($value, 0, 19);
+        }
+        break;
+
+      case 'double':
+        $value = (double) $value;
+        break;
+
+      case 'integer':
+        $value = (int) $value;
+        break;
+
+      case 'multipicklist':
+        if (!is_array($value)) {
+          $value = explode(';', $value);
+          $value = array_map('trim', $value);
+        }
+        break;
+
+      case 'id':
+      case 'reference':
+        if (empty($value)) {
+          break;
+        }
+        // If value is an SFID, cast to string.
+        if ($value instanceof SFID) {
+          $value = (string) $value;
+        }
+        // Otherwise, send it through SFID constructor & cast to validate.
+        else {
+          $value = (string) (new SFID($value));
+        }
+        break;
+
+      default:
+        if (is_string($value)) {
+          if (isset($drupal_field_settings['max_length']) && $drupal_field_settings['max_length'] > 0 && $drupal_field_settings['max_length'] < strlen($value)) {
+            $value = substr($value, 0, $drupal_field_settings['max_length']);
+          }
+        }
+        break;
+
+    }
+
+    return $value;
   }
 
   /**
