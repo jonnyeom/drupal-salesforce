@@ -186,20 +186,17 @@ class Properties extends SalesforceMappingFieldPluginBase {
 
     $field_definition = $describe->getField($this->config('salesforce_field'));
 
-    $data_fetcher_field_definition = $this->getDataFetcher()->fetchDefinitionByPropertyPath($entity->getTypedData()->getDataDefinition(), $this->config('drupal_field_value'));
-    if ($data_fetcher_field_definition instanceof ListDataDefinitionInterface) {
-      $data_fetcher_field_definition = $data_fetcher_field_definition->getItemDefinition();
+    $data_definition = $this->getDataFetcher()->fetchDefinitionByPropertyPath($entity->getTypedData()->getDataDefinition(), $this->config('drupal_field_value'));
+    if ($data_definition instanceof ListDataDefinitionInterface) {
+      $data_definition = $data_definition->getItemDefinition();
     }
-    $class = \get_class($data_fetcher_field_definition);
-    if ($data_fetcher_field_definition instanceof ComplexDataDefinitionInterface) {
-      $field_main_property = $drupal_field_type = $data_fetcher_field_definition
-        ->getPropertyDefinition($data_fetcher_field_definition->getMainPropertyName());
-    }
-    else {
-      $field_main_property = $drupal_field_type = $data_fetcher_field_definition;
+    $field_main_property = $data_definition;
+    if ($data_definition instanceof ComplexDataDefinitionInterface) {
+      $field_main_property = $data_definition
+        ->getPropertyDefinition($data_definition->getMainPropertyName());
     }
     $drupal_field_type = $field_main_property ? $field_main_property->getDataType() : NULL;
-    $drupal_field_settings = $data_fetcher_field_definition->getSettings();
+    $drupal_field_settings = $data_definition->getSettings();
 
     switch (strtolower($field_definition['type'])) {
       case 'boolean':
