@@ -192,28 +192,6 @@ class Properties extends SalesforceMappingFieldPluginBase {
     return $field_main_property ? $field_main_property->getDataType() : NULL;
   }
 
-
-  /**
-   *
-   */
-  private function getConfigurationOptions(SalesforceMappingInterface $mapping) {
-    $instances = $this->entityFieldManager->getFieldDefinitions(
-      $mapping->get('drupal_entity_type'),
-      $mapping->get('drupal_bundle')
-    );
-
-    $options = [];
-    foreach ($instances as $key => $instance) {
-      // Entity reference fields are handled elsewhere.
-      if ($this->instanceOfEntityReference($instance)) {
-        continue;
-      }
-      $options[$key] = $instance->getLabel();
-    }
-    asort($options);
-    return $options;
-  }
-
   /**
    * {@inheritdoc}
    *
