@@ -5,6 +5,7 @@ namespace Drupal\salesforce_mapping\Plugin\SalesforceMappingField;
 use Drupal\Core\Entity\EntityInterface;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
+use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\TypedData\ListDataDefinitionInterface;
 use Drupal\Core\Url;
 use Drupal\salesforce\SFID;
@@ -169,91 +170,28 @@ class Properties extends SalesforceMappingFieldPluginBase {
   /**
    * {@inheritdoc}
    */
-  public function pullValue(SObject $sf_object, EntityInterface $entity, SalesforceMappingInterface $mapping) {
-    // @TODO to provide for better extensibility, this would be better implemented as some kind of constraint or plugin system. That would also open new possibilities for injecting business logic into he mapping layer.
-
-    if (!$this->pull() || empty($this->config('salesforce_field'))) {
-      throw new SalesforceException('No data to pull. Salesforce field mapping is not defined.');
-    }
-
-    $value = $sf_object->field($this->config('salesforce_field'));
-
-    // objectDescribe can throw an exception, but that's outside the scope of
-    // being handled here. Allow it to percolate.
-    $describe = $this
-      ->salesforceClient
-      ->objectDescribe($mapping->getSalesforceObjectType());
-
-    $field_definition = $describe->getField($this->config('salesforce_field'));
-
+  protected function getFieldDataDefinition(EntityInterface $entity) {
     $data_definition = $this->getDataFetcher()->fetchDefinitionByPropertyPath($entity->getTypedData()->getDataDefinition(), $this->config('drupal_field_value'));
     if ($data_definition instanceof ListDataDefinitionInterface) {
       $data_definition = $data_definition->getItemDefinition();
     }
+
+    return $data_definition;
+  }
+
+  /**
+   * {@inheritdoc}
+   */
+  protected function getDrupalFieldType(DataDefinitionInterface $data_definition) {
     $field_main_property = $data_definition;
     if ($data_definition instanceof ComplexDataDefinitionInterface) {
       $field_main_property = $data_definition
         ->getPropertyDefinition($data_definition->getMainPropertyName());
     }
-    $drupal_field_type = $field_main_property ? $field_main_property->getDataType() : NULL;
-    $drupal_field_settings = $data_definition->getSettings();
 
-    switch (strtolower($field_definition['type'])) {
-      case 'boolean':
-        if (is_string($value) && strtolower($value) === 'false') {
-          $value = FALSE;
-        }
-        $value = (bool) $value;
-        break;
-
-      case 'datetime':
-        if ($drupal_field_type === 'datetime_iso8601') {
-          $value = substr($value, 0, 19);
-        }
-        break;
-
-      case 'double':
-        $value = (double) $value;
-        break;
-
-      case 'integer':
-        $value = (int) $value;
-        break;
-
-      case 'multipicklist':
-        if (!is_array($value)) {
-          $value = explode(';', $value);
-          $value = array_map('trim', $value);
-        }
-        break;
-
-      case 'id':
-      case 'reference':
-        if (empty($value)) {
-          break;
-        }
-        // If value is an SFID, cast to string.
-        if ($value instanceof SFID) {
-          $value = (string) $value;
-        }
-        // Otherwise, send it through SFID constructor & cast to validate.
-        else {
-          $value = (string) (new SFID($value));
-        }
-        break;
-
-      default:
-        if (is_string($value)) {
-          if (isset($drupal_field_settings['max_length']) && $drupal_field_settings['max_length'] > 0 && $drupal_field_settings['max_length'] < strlen($value)) {
-            $value = substr($value, 0, $drupal_field_settings['max_length']);
-          }
-        }
-        break;
-
-    }
-
-    return $value;
+    return $field_main_property ? $field_main_property->getDataType() : NULL;
   }
+
 
   /**
    *
