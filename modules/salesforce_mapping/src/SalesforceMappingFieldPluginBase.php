@@ -481,7 +481,7 @@ abstract class SalesforceMappingFieldPluginBase extends PluginBase implements Sa
    * @param \Drupal\Core\Entity\EntityInterface $entity
    *   The Entity to get the field from.
    *
-   * @return DataDefinitionInterface
+   * @return \Drupal\Core\TypedData\DataDefinitionInterface
    *   The Data Definition of the current field.
    */
   protected function getFieldDataDefinition(EntityInterface $entity) {
