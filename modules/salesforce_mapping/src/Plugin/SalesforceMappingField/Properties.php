@@ -8,12 +8,9 @@ use Drupal\Core\TypedData\ComplexDataDefinitionInterface;
 use Drupal\Core\TypedData\DataDefinitionInterface;
 use Drupal\Core\TypedData\ListDataDefinitionInterface;
 use Drupal\Core\Url;
-use Drupal\salesforce\SFID;
-use Drupal\salesforce\SObject;
 use Drupal\salesforce_mapping\SalesforceMappingFieldPluginBase;
 use Drupal\salesforce_mapping\Entity\SalesforceMappingInterface;
 use Drupal\field\Entity\FieldConfig;
-use Drupal\Core\Plugin\Context\ContextDefinition;
 use Drupal\Core\TypedData\TypedDataTrait;
 use Drupal\typed_data\DataFetcherTrait;
 use Drupal\typed_data\Util\StateTrait;
@@ -88,7 +85,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function validateConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::validateConfigurationForm($form, $form_state);
@@ -109,14 +106,15 @@ class Properties extends SalesforceMappingFieldPluginBase {
   public function submitConfigurationForm(array &$form, FormStateInterface $form_state) {
     parent::submitConfigurationForm($form, $form_state);
 
-    // Resetting the `drupal_field_value` to just the `setting` portion, which should be a string.
+    // Resetting the `drupal_field_value` to just the `setting` portion,
+    // which should be a string.
     $config_value = $form_state->getValue('config');
     $config_value['drupal_field_value'] = $config_value['drupal_field_value']['setting'];
     $form_state->setValue('config', $config_value);
   }
 
   /**
-   *
+   * {@inheritdoc}
    */
   public function value(EntityInterface $entity, SalesforceMappingInterface $mapping) {
     // No error checking here. If a property is not defined, it's a
@@ -204,7 +202,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
       return [];
     }
     return [
-      'config' => [$field_config->getConfigDependencyName()]
+      'config' => [$field_config->getConfigDependencyName()],
     ];
   }
 
