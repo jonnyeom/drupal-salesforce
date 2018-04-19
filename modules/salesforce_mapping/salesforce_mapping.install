@@ -69,3 +69,12 @@ function salesforce_mapping_update_8002() {
   db_drop_field('salesforce_mapped_object_revision', 'entity_id');
   db_drop_field('salesforce_mapped_object_revision', 'entity_type_id');
 }
+
+/**
+ * Checks to see if the new dependency, typed_data, is installed.
+ */
+function salesforce_mapping_update_8003() {
+  if (!\Drupal::moduleHandler()->moduleExists('typed_data')) {
+    throw new \Exception('Please enable new dependency typed_data before continuing.');
+  }
+}
