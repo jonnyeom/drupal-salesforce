@@ -17,7 +17,8 @@
     ],
     "require": {
         "drupal/dynamic_entity_reference": "2.x",
-        "drupal/typed_data": "1.x-dev"
+        "drupal/typed_data": "1.x-dev",
+        "drupal/encrypt": "^3.0@alpha"
     },
     "support": {
         "issues": "https://drupal.org/project/issues/salesforce",
