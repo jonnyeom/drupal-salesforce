@@ -59,14 +59,41 @@ class AutocompleteController extends ControllerBase {
    */
   public function autocomplete(Request $request, $entity_type_id, $bundle) {
     $string = Unicode::strtolower($request->query->get('q'));
+    $plugin_id = $request->query->get('mapping_plugin_id');
     $field_definitions = $this->fieldManager->getFieldDefinitions($entity_type_id, $bundle);
-    // Filter out EntityReference Items since they are handled elsewhere.
-    // @Todo: Not sure why this filter does not work.
-    foreach ($field_definitions as $index => $field_definition) {
-      if ($field_definition instanceof EntityReferenceFieldItemListInterface) {
-        unset($field_definitions[$index]);
-      }
+
+    switch ($plugin_id) {
+      case 'properties':
+        // Filter out EntityReference Items.
+        foreach ($field_definitions as $index => $field_definition) {
+          $class = $field_definition->getClass();
+          $definiton = $field_definition->getItemDefinition();
+          $type = $field_definition->getType();
+          if ($index === 'field_subscription_address') {
+            $v = 1;
+          }
+          if ($field_definition->getType() === 'entity_reference') {
+            unset($field_definitions[$index]);
+          }
+        }
+        break;
+
+      case 'RelatedProperties':
+        // Filter to Only EntityReference Items.
+        foreach ($field_definitions as $index => $field_definition) {
+          $class = $field_definition->getClass();
+          $definiton = $field_definition->getItemDefinition();
+          $type = $field_definition->getType();
+          if ($index === 'field_subscription_address') {
+            $v = 1;
+          }
+          if ($field_definition->getType() !== 'entity_reference') {
+            unset($field_definitions[$index]);
+          }
+        }
+        break;
     }
+
     $results = $this
       ->getDataFetcher()
       ->autocompletePropertyPath($field_definitions, $string);
