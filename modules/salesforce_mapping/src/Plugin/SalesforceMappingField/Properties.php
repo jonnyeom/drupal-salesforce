@@ -59,6 +59,7 @@ class Properties extends SalesforceMappingFieldPluginBase {
     $pluginForm[$context_name]['setting'] = [
       '#type' => 'textfield',
       '#title' => $title,
+      '#attributes' => ['class' => ['drupal-field-value']],
       '#default_value' => $this->config('drupal_field_value'),
     ];
     $element = &$pluginForm[$context_name]['setting'];

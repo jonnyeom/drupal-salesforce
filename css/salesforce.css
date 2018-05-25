@@ -9,6 +9,10 @@ form#salesforce-mapping-fields-form div.field_mapping_field > .form-item {
   padding-left: 1em;
 }
 
+form#salesforce-mapping-fields-form div.field_mapping_field > .form-item input.drupal-field-value {
+  width: initial;
+}
+
 form#salesforce-mapping-fields-form div.field_mapping_field {
   clear: left;
 }
