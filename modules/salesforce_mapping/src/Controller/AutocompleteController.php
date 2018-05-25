@@ -60,10 +60,10 @@ class AutocompleteController extends ControllerBase {
   public function autocomplete(Request $request, $entity_type_id, $bundle) {
     $string = Unicode::strtolower($request->query->get('q'));
     $field_definitions = $this->fieldManager->getFieldDefinitions($entity_type_id, $bundle);
-    // Filter out EntityReference Items since they are handled elsewhere.
-    // @Todo: Not sure why this filter does not work.
+
+    // Filter out EntityReference Items.
     foreach ($field_definitions as $index => $field_definition) {
-      if ($field_definition instanceof EntityReferenceFieldItemListInterface) {
+      if ($field_definition->getType() === 'entity_reference') {
         unset($field_definitions[$index]);
       }
     }
