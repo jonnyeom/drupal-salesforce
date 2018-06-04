@@ -158,10 +158,17 @@ class Properties extends SalesforceMappingFieldPluginBase {
    */
   protected function getStringValue(EntityInterface $entity, $drupal_field_value) {
     $sub_paths = explode('.', $drupal_field_value);
+    // Check first if the field has any data at all.
+    if (empty(current($sub_paths)) || empty($entity->get(current($sub_paths))) || $entity->get(current($sub_paths))->isEmpty()) {
+      return NULL;
+    }
+
+    // If its a nested value, use the Data Fetcher service to get the value.
     if (\count($sub_paths) > 1) {
       $string_data = $this->getDataFetcher()->fetchDataBySubPaths($entity->getTypedData(), $sub_paths)->getString();
       return $string_data;
     }
+    // Otherwise, use the default method.
     $original = $entity->get($drupal_field_value)->value;
     return $original;
   }
