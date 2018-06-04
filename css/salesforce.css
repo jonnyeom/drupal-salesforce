@@ -1,22 +1,22 @@
-form#salesforce-mapping-fields-form div.even {
+#salesforce-mapping-fields-form div.even {
   /* Why doesn't this work? */
   background-color: lightgray;
 }
 
-form#salesforce-mapping-fields-form div.field_mapping_field > .form-item {
+#salesforce-mapping-fields-form div.field_mapping_field > .form-item {
   float: left;
   width: 23%;
   padding-left: 1em;
 }
 
-form#salesforce-mapping-fields-form div.field_mapping_field > .form-item input.drupal-field-value {
+#salesforce-mapping-fields-form div.field_mapping_field > .form-item .drupal-field-value {
   width: initial;
 }
 
-form#salesforce-mapping-fields-form div.field_mapping_field {
+#salesforce-mapping-fields-form div.field_mapping_field {
   clear: left;
 }
 
-form#salesforce-mapping-fields-form #edit-buttons {
+#salesforce-mapping-fields-form #edit-buttons {
   clear: both;
 }
