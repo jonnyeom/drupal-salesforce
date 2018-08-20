@@ -199,22 +199,6 @@ class Properties extends SalesforceMappingFieldPluginBase {
   }
 
   /**
-   * {@inheritdoc}
-   *
-   * @return array
-   *   Field config upon which this mapping depends
-   */
-  public function getDependencies(SalesforceMappingInterface $mapping) {
-    $field_config = FieldConfig::loadByName($mapping->get('drupal_entity_type'), $mapping->get('drupal_bundle'), $this->config('drupal_field_value'));
-    if (empty($field_config)) {
-      return [];
-    }
-    return [
-      'config' => [$field_config->getConfigDependencyName()],
-    ];
-  }
-
-  /**
    * Submit callback: switch a context to data selecor or direct input mode.
    */
   public static function switchContextMode(array &$form, FormStateInterface $form_state) {
